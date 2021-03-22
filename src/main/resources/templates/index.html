@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <style type="text/css">
+        body{
+            text-align: center;
+            margin:0 auto;
+        }
+        .divForm{
+            display: inline-block;
+        }
+        .form-horizontal{
+            display: inline-block;
+        }
+        .div .div1{
+            margin-top: 30px;
+            float: left;
+            position: absolute;
+            margin-left: 100px;
+            border-style:solid;
+            border-width:1px;
+            width: 600px;
+        }
+        .div .div2{
+            margin-top: 30px;
+            float: left;
+            margin-left: 900px;
+            border-style:solid;
+            border-width:1px;
+            width: 600px;
+        }
+    </style>
+</head>
+<body>
+<div class="div">
+    <div class="div1">
+        <h1 style="text-align: center">杜赛价格查询</h1>
+        <form action="javascript:search()" method="post"  id="search">
+        地区名称：<input type="text" name="areaName" id="areaName" style="margin-top: 30px;"/>
+        <br/>
+        <br/>
+        重量：<input type="text" name="weight" id="weight"/>
+        <br/>
+        <br/>
+        <div>
+            包裹类型：
+            <select name="freightType" id="freightType">
+                <option value ="0">DOC</option>
+                <option value ="1">袋装</option>
+                <option value ="2" selected="selected">盒装</option>
+            </select>
+            <input type="submit" value="查询" style="margin-left: 20px;"/>
+        </div>
+        <input type="hidden" name="pageindex" id="pageindex" value="1"/>
+        <br/>
+        <br/>
+            </form>
+    <table id="tt" class="divForm" border="1">
+        <tr style="background-color:lightgray">
+            <td>地区名称</td>
+            <td>成本价格</td>
+            <td>附加燃油后的价格</td>
+           <!-- <td>包裹类型</td>-->
+            <td>重量</td>
+            <td>供应商名称</td>
+        </tr>
+
+    </table>
+<p><a href="#" id="minpage">首页</a>&nbsp;&nbsp;
+    <a href="#" id="uppage">上一页</a>&nbsp;&nbsp;
+    <a href="#" id="lapage">下一页</a>&nbsp;&nbsp;
+    <a href="#" id="maxpage">尾页</a></p>
+<p>共有<span id="totalCount"></span>条数据，当前第<span id="currentPageNo"></span>/
+    <span id="max"></span>页</p>
+</div>
+<div class="div2" >
+    <h1 style="text-align: center;">excel导入</h1>
+    <form class="form-horizontal" id="form_table" action="/import" enctype="multipart/form-data" method="post">
+        供应商名称：
+        <select id="sel1" name="priceType">
+            <option value ="上海双时达FEDEX-A价">上海双时达FEDEX-A价</option>
+            <option value ="上海双时达FEDEX-D价">上海双时达FEDEX-D价</option>
+            <option value ="上海双时达重货">上海双时达重货</option>
+            <option value ="上海递尔FEDEX-Z价">上海递尔FEDEX-Z价</option>
+            <option value ="上海递儿UPS小货红单-X价">上海递儿UPS小货红单-X价</option>
+            <option value ="上海递儿UPS小货蓝单-X价">上海递儿UPS小货蓝单-X价</option>
+        </select>
+        <br/>
+        <br/>
+        若列表中无，则可自填: <input type="text" name="selfpriceType" id="selfpriceType" value=""/>
+        <br/>
+        <br/>
+        <button type="submit" class="btn btn-primary">导入</button>
+        <input class="form-input" type="file" name="filename"/>
+    </form>
+    <br/>
+    <br/>
+</div>
+</div>
+<script>
+    /*<![CDATA[*/
+    function select() {
+        var areaName = $("#areaName").val();
+        if (areaName == null || areaName == "" || areaName == undefined){
+            alert("地区名称不能为空");
+        }
+        var weight = $("#weight").val();
+        if (weight == null || weight == "" || weight == undefined){
+            alert("重量不能为空");
+        }
+        var freightType = $("#freightType").val();
+
+        var pageIndex = $("#pageindex").val();
+        $.ajax({
+            type:"post",
+            url:"/selectFreightList",
+            data:{
+                "areaName":areaName,
+                "weight":weight,
+                "freightType":freightType,
+                "pageindex":pageIndex},
+            dataType:"json",
+            success:function (dat) {
+                var str = null;
+                var list = dat.infoList;
+                // alert(JSON.stringify(list));
+                for (var i = 0; i < list.length; i++){
+                    var freight = list[i];
+                    var freightPrice = weight >= 22 ? Math.round(freight.price * weight * 1.165) : Math.round(freight.price * 1.165);
+                    var stra='<tr><td>' + freight.areaName +
+                        '</td><td>' + Math.round(freight.price) +
+                        '</td><td>' + freightPrice +
+                       /* '</td><td>' + freight.freightType +*/
+                        '</td><td>' + freight.weight +
+                        '</td><td>' + freight.priceType +
+                        '</td></tr>';
+                    str=str+stra;
+                }
+                $("#tt tr:gt(0)").remove();
+                $("#tt").append(str);
+                $("#currentPageNo").val(dat.currentPageNo);
+                $("#currentPageNo").html(dat.currentPageNo);
+                $("#max").val(dat.totalPageCount);
+                $("#max").html(dat.totalPageCount);
+                $("#totalCount").val(dat.totalCount);
+                $("#totalCount").html(dat.totalCount);
+            }
+        })
+    }
+    $("#lapage").on("click",function () {
+        var pageIndex=$("#currentPageNo").val()*1+1;
+        $("#pageindex").val(pageIndex);
+        select();
+    })
+
+    $("#uppage").on("click",function () {
+        var pageIndex=$("#currentPageNo").val()*1-1;
+        $("#pageindex").val(pageIndex);
+        select();
+    })
+
+    $("#minpage").on("click",function () {
+        var pageIndex=1;
+        $("#pageindex").val(pageIndex);
+        select();
+    })
+
+    $("#maxpage").on("click",function () {
+        var pageIndex=$("#max").val();
+        $("#pageindex").val(pageIndex);
+        select();
+    })
+
+    function search() {
+        var pageIndex=1;
+        $("#pageindex").val(pageIndex);
+        select();
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

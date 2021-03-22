@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xue.repository.dao.FreightMapper">
+  <resultMap id="BaseResultMap" type="com.xue.entity.model.Freight">
+    <id column="freightId" jdbcType="INTEGER" property="id" />
+    <result column="areaName" jdbcType="VARCHAR" property="areaName" />
+    <result column="areaEgName" jdbcType="VARCHAR" property="areaEgName" />
+    <result column="price" jdbcType="VARCHAR" property="price" />
+    <result column="freightType" jdbcType="INTEGER" property="freightType" />
+    <result column="weight" jdbcType="VARCHAR" property="weight" />
+  </resultMap>
+  <insert id="addFreight" parameterType="com.xue.entity.model.Freight" >
+      insert into freight (areaName,areaEgName,price,freightType,weight,priceType) values (#{areaName},#{areaEgName},#{price}
+      ,#{freightType},#{weight},#{priceType})
+  </insert>
+  <select id="selectFreight" resultType="java.lang.Integer">
+      select count(*) from freight where areaName = #{areaName} and weight = #{weight} and freightType = #{freightType}
+      and priceType = #{priceType}
+  </select>
+  <update id="updateFreight" parameterType="com.xue.entity.model.Freight" >
+      update freight set price = #{price} where freightId = #{freightId}
+  </update>
+
+  <select id="selectFreightList" resultType="com.xue.entity.model.Freight">
+      select * from freight where areaName  like concat('%',#{areaName},'%') and weight = #{weight} and freightType = #{freightType} order by price*1 asc
+        limit #{count} , #{pageSize}
+  </select>
+
+ <select id="selectFreightListCount" resultType="java.lang.Integer">
+      select count(*) from freight where 1 = 1
+      and freightType = #{freightType}
+     <if test="areaName != null and areaName != ''">
+        and areaName  like concat('%',#{areaName},'%')
+     </if>
+     <if test="weight != null and weight != ''">
+         and weight = #{weight}
+     </if>
+
+  </select>
+
+</mapper>
