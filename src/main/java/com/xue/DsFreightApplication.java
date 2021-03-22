@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class DsFreightApplication {
 
 	public static void main(String[] args) {
+		System.out.println("==启动==springboot");
 		SpringApplication.run(DsFreightApplication.class, args);
 	}
 
